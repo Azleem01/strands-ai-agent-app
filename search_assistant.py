@@ -65,7 +65,7 @@ model = OpenAIModel(
         "api_key": OPENROUTER_API_KEY,
         "base_url": "https://openrouter.ai/api/v1",
     },
-    model_id="perplexity/sonar",
+    model_id="nvidia/nemotron-3.5-lightning:free",
 )
 
 agent = Agent(

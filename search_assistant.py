@@ -1,9 +1,7 @@
 import os
 from dotenv import load_dotenv
-from mcp import StdioServerParameters, stdio_client
 from strands import Agent, tool
-from strands.models import BedrockModel
-from strands.tools.mcp import MCPClient
+from strands.models.openai import OpenAIModel
 from constants import SESSION_ID
 
 # Load environment variables
@@ -23,36 +21,14 @@ def search_assistant(query: str) -> str:
     Returns:
         Output from interaction
     """
-    # Reuse the already initialized MCP server connection
     response = agent(query)
     print("\n\n")
-    return response
+    return str(response)
 
 
-PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
-if not PERPLEXITY_API_KEY:
-    raise ValueError("PERPLEXITY_API_KEY environment variable is required")
-
-try:
-    # Initialize Perplexity MCP server
-    perplexity_mcp_server = MCPClient(
-        lambda: stdio_client(
-            StdioServerParameters(
-                command="docker",
-                args=[
-                    "run",
-                    "-i",
-                    "--rm",
-                    "-e",
-                    "PERPLEXITY_API_KEY",
-                    "mcp/perplexity-ask",
-                ],
-                env={"PERPLEXITY_API_KEY": PERPLEXITY_API_KEY},
-            )
-        )
-    )
-except Exception as e:
-    raise Exception(f"Failed to initialize MCP Client: {str(e)}")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+if not OPENROUTER_API_KEY:
+    raise ValueError("OPENROUTER_API_KEY environment variable is required")
 
 
 system_prompt = """You are an intelligent search and research assistant with access to real-time web information.
@@ -79,25 +55,24 @@ system_prompt = """You are an intelligent search and research assistant with acc
     4. Summarize key findings clearly
     5. Highlight any limitations or uncertainties in the data"""
 
-# Initialize the MCP server connection once and reuse it
-perplexity_mcp_server.__enter__()
+# Use OpenRouter (an OpenAI-compatible API) instead of the Perplexity MCP server.
+# "perplexity/sonar" performs live web search natively, so the agent needs no extra tools
+# and no Docker. Swap model_id for any OpenRouter model; appending ":online" to a model
+# (e.g. "openai/gpt-4o-mini:online") enables OpenRouter's web-search plugin on models that
+# don't search on their own.
+model = OpenAIModel(
+    client_args={
+        "api_key": OPENROUTER_API_KEY,
+        "base_url": "https://openrouter.ai/api/v1",
+    },
+    model_id="perplexity/sonar",
+)
 
-try:
-    model = BedrockModel(
-        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
-    )
-    # Get available tools from MCP server
-    tools = perplexity_mcp_server.list_tools_sync()
-
-    agent = Agent(
-        model=model,
-        system_prompt=system_prompt,
-        tools=tools,
-        trace_attributes={"session.id": SESSION_ID},
-    )
-except Exception as e:
-    perplexity_mcp_server.__exit__(None, None, None)
-    raise e
+agent = Agent(
+    model=model,
+    system_prompt=system_prompt,
+    trace_attributes={"session.id": SESSION_ID},
+)
 
 
 if __name__ == "__main__":
@@ -113,7 +88,7 @@ if __name__ == "__main__":
     print("   🎯 Targeted research with reliable sources")
     print()
     print("🛠️  Powered by:")
-    print("   • Perplexity AI - Advanced web search capabilities")
+    print("   • OpenRouter - web-search-capable models (perplexity/sonar)")
     print("   • Real-time information access")
     print("   • Multi-source cross-referencing")
     print("   • Source citation and verification")

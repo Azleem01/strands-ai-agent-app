@@ -1,1 +1,13 @@
+# Secrets / local environment
+.env
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+.venv-1/
+
+# Local runtime database (created on first appointment)
 appointments.db

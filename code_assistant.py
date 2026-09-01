@@ -1,7 +1,11 @@
 import os
 from strands import Agent, tool
 from strands.models import BedrockModel
-from strands_tools import python_repl, editor, shell, journal
+# NOTE: python_repl and shell are Unix-only (they import fcntl/pty/termios) and
+# will not import on native Windows. They're omitted here so this runs on Windows.
+# On WSL / Linux / macOS you can restore full power with:
+#   from strands_tools import python_repl, editor, shell, journal
+from strands_tools import editor, journal
 from constants import SESSION_ID
 
 # Show rich UI for tools in CLI
@@ -26,13 +30,13 @@ def code_assistant(query: str) -> str:
 system_prompt = """You are a software expert and coder. Write, debug, test, and iterate on software"""
 
 model = BedrockModel(
-    model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+    model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
 )
 
 agent = Agent(
     model=model,
     system_prompt=system_prompt,
-    tools=[python_repl, editor, shell, journal],
+    tools=[editor, journal],
     trace_attributes={"session.id": SESSION_ID},
 )
 
@@ -50,9 +54,7 @@ if __name__ == "__main__":
     print("   📋 Project documentation and notes")
     print()
     print("🛠️  Available Tools:")
-    print("   • Python REPL - Run and test Python code")
     print("   • Code Editor - Create and modify files")
-    print("   • Shell Access - Execute system commands")
     print("   • Journal - Document progress and notes")
     print()
     print("💡 Tips:")

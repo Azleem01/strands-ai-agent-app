@@ -37,8 +37,7 @@ This sample implements a personal assistant agent using Strands' [agents as tool
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/strands-agents/samples.git
-cd 02-samples/05-personal-assistant
+git clone https://github.com/Azleem01/strands-ai-agent-app
 ```
 
 2. **Set up Python virtual environment**:

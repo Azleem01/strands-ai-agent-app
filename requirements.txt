@@ -2,3 +2,4 @@ uv
 strands-agents[openai]
 strands-agents-tools
 python-dotenv
+streamlit
